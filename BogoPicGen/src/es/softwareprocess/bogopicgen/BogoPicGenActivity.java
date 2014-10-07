@@ -35,6 +35,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -81,6 +83,7 @@ public class BogoPicGenActivity extends Activity {
 		cancelButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				processIntent(true);
+				setRandomString();
 			}
 		});
 
@@ -90,18 +93,44 @@ public class BogoPicGenActivity extends Activity {
 
 	private void setBogoPic() {
 		// TODO: Show a toast with message "Generating Photo"
-		
+		Toast.makeText(this, "Generating Photo ", Toast.LENGTH_LONG).show();
 		
 		// TODO: Get a reference to the image button
-		
+		ImageButton button =(ImageButton) findViewById(R.id.TakeAPhoto);
 		
 		// Generate a bogopic
 		ourBMP = BogoPicGen.generateBitmap(400, 400);
 		
 		// TODO: Assign the bogopic to the button with setImageBitmap
-		
+		button.setImageBitmap(ourBMP);
 	}
+	
 
+
+		private SecureRandom random = new SecureRandom();
+
+		public String nextSessionId()
+		{
+
+			return new BigInteger(130, random).toString(32);
+		
+		}
+
+	
+	
+	public void setRandomString(){
+		Intent intent = getIntent();
+		if (intent == null) {
+			return;
+		}
+		String text = new String();
+		text = nextSessionId();
+		intent.putExtra("data", text);
+		File intentPicture = getPicturePath(intent);
+		saveBMP(intentPicture, ourBMP);
+		setResult(RESULT_OK);
+	}
+	
 	// Call this to accept
 	private void processIntent(boolean cancel) {
 		Intent intent = getIntent();
@@ -112,14 +141,19 @@ public class BogoPicGenActivity extends Activity {
 		try {	
 			if (intent.getExtras() != null) {
 				// TODO: If cancelled, show a toast, set result to RESULT_CANCELED, finish and return 
-				
+				if (cancel){
+					Toast.makeText(this, "Photo canceled", Toast.LENGTH_LONG).show();
+					setResult(RESULT_CANCELED);
+					finish();
+					return;
+				}
 				
 				// If accepted save the picture
 				File intentPicture = getPicturePath(intent);
 				saveBMP(intentPicture, ourBMP);
 				
 				// TODO: set result to RESULT_OK
-				
+				setResult(RESULT_OK);
 			} else {
 				Toast.makeText(this, "Photo Cancelled: No Reciever?",
 						Toast.LENGTH_LONG).show();
